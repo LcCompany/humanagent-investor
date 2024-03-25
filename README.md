@@ -1,4 +1,4 @@
-# 📦 Streamlit App Starter Kit 
+# 📦 Humanagent Investor
 ```
 ⬆️ (Replace above with your app's name)
 ```
