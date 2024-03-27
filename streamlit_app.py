@@ -18,7 +18,7 @@ def get_current_price(ticker):
     try:
         stock = yf.Ticker(ticker)
         data = stock.history(period='1d', interval='1m')
-        return data['Close'][-1]
+        return data['Close'].iloc[-1]  # Use iloc instead of square bracket indexing
     except IndexError:
         st.error(f"Error: No data found for ticker '{ticker}'. Please ensure the ticker is entered exactly as it appears on Yahoo Finance.")
         return None
