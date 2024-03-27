@@ -6,30 +6,6 @@ from bs4 import BeautifulSoup
 import ast
 import json
 
-def clean_content(content):
-    # Parse the content as HTML
-    soup = BeautifulSoup(content, 'html.parser')
-    
-    # Remove specific tags or attributes if needed
-    for tag in soup(['span', 'math', 'semantics', 'mrow', 'annotation']):
-        tag.decompose()
-    
-    # Get the cleaned text content
-    cleaned_content = soup.get_text()
-    
-    return cleaned_content
-
-def generate_analysis(ticker, hist_data, current_price, api_key):
-    # ... (your existing code for generating the analysis)
-    
-    response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data)
-    response_text = response.json()['content'][0]['text']
-    
-    # Clean the generated content
-    cleaned_response_text = clean_content(response_text)
-    
-    return cleaned_response_text
-
 def get_stock_data(ticker, years):
     end_date = datetime.now().date()
     start_date = end_date - timedelta(days=years*365)
@@ -107,6 +83,30 @@ Given the historical price data and the current price for {ticker}, apply the ab
     response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data)
     response_text = response.json()['content'][0]['text']
     return response_text
+
+def clean_content(content):
+    # Parse the content as HTML
+    soup = BeautifulSoup(content, 'html.parser')
+    
+    # Remove specific tags or attributes if needed
+    for tag in soup(['span', 'math', 'semantics', 'mrow', 'annotation']):
+        tag.decompose()
+    
+    # Get the cleaned text content
+    cleaned_content = soup.get_text()
+    
+    return cleaned_content
+
+def generate_analysis(ticker, hist_data, current_price, api_key):
+    # ... (your existing code for generating the analysis)
+    
+    response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data)
+    response_text = response.json()['content'][0]['text']
+    
+    # Clean the generated content
+    cleaned_response_text = clean_content(response_text)
+    
+    return cleaned_response_text
 
 def main():
     st.title("Stock Analysis App")
