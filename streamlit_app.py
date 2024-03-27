@@ -86,29 +86,25 @@ Given the historical price data and the current price for {ticker}, apply the ab
 
 def main():
     st.title("Stock Analysis App")
-
-    api_key = st.text_input("Enter your Anthropic API key:", type="password")
+    # api_key = st.text_input("Enter your Anthropic API key:", type="password")  # Remove this line
     ticker = st.text_input("Enter the stock ticker to analyze, exactly as it appears on [Yahoo Finance](https://finance.yahoo.com/):")
     years = 1
-
     if st.button("Analyze"):
-        if api_key and ticker:
+        if ticker:
             # Get stock data
             hist_data = get_stock_data(ticker, years)
             current_price = get_current_price(ticker)
             if current_price is not None:
                 # Generate analysis
+                api_key = st.secrets["ANTHROPIC_API_KEY"]  # Retrieve the API key from Streamlit secrets
                 analysis = generate_analysis(ticker, hist_data, current_price, api_key)
                 st.subheader(f"Analysis for {ticker}:")
                 st.write(analysis)
             else:
                 st.error("Unable to generate analysis due to missing data.")
         else:
-            if not api_key:
-                st.warning("Please enter your Anthropic API key.")
             if not ticker:
                 st.warning("Please enter a stock ticker.")
 
 if __name__ == "__main__":
     main()
-    #endgame
