@@ -125,7 +125,7 @@ Your heightened parameters are:
 - "pattern_recognition_accuracy": "enhanced",
 - "indicator_sensitivity": "customized_for_volatility",
 - "historical_data_reliance": "balanced",
-- "prediction_time_frame": "short_to_medium_term" for minute, hour, day time frames "long_term" for weekly and monthly time frames
+- "prediction_time_frame": "short_to_medium_term"
 </role_based_parameters>
 <core_responsibilities>
 - Analyze the provided price graph using technical indicators and patterns.
@@ -170,14 +170,11 @@ def main():
         '5m': '5 minutes',
         '15m': '15 minutes',
         '30m': '30 minutes',
-        '60m': '1 hour',
-        '90m': '1.5 hours',
         '1h': '1 hour',
         '1d': '1 day',
         '5d': '5 days',
         '1wk': '1 week',
-        '1mo': '1 month',
-        '3mo': '3 months'
+        '1mo': '1 month'
     }
 
     period = st.selectbox("Select the timeframe for the analysis:", list(period_options.values()), index=8)
