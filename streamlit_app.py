@@ -4,21 +4,56 @@ from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
 
-
 def get_stock_data(ticker, period):
-    if period in ['1m', '2m', '5m', '15m']:
-        interval = period
+    if period == '1m':
+        interval = '1m'
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=1)
-    elif period in ['30m', '60m', '90m', '1h']:
+    elif period == '2m':
+        interval = '2m'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=1)
+    elif period == '5m':
+        interval = '5m'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=1)
+    elif period == '15m':
+        interval = '15m'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=1)
+    elif period == '30m':
+        interval = '30m'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=7)
+    elif period == '60m':
+        interval = '60m'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=7)
+    elif period == '90m':
+        interval = '90m'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=7)
+    elif period == '1h':
         interval = '1h'
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=7)
-    elif period in ['1d', '5d', '1wk']:
+    elif period == '1d':
         interval = '1d'
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=365)
-    elif period in ['1mo', '3mo']:
+    elif period == '5d':
+        interval = '1d'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=365)
+    elif period == '1wk':
+        interval = '1wk'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=365)
+    elif period == '1mo':
+        interval = '1mo'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=365 * 3)
+    elif period == '3mo':
         interval = '1mo'
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=365 * 3)
@@ -32,6 +67,29 @@ def get_stock_data(ticker, period):
     return hist_data
 
 def get_current_price(ticker, period):
+    try:
+        stock = yf.Ticker(ticker)
+        if period == '1m':
+            data = stock.history(period='1d', interval='1m')
+        elif period == '2m':
+            data = stock.history(period='1d', interval='2m')
+        elif period == '5m':
+            data = stock.history(period='1d', interval='5m')
+        elif period == '15m':
+            data = stock.history(period='1d', interval='15m')
+        elif period in ['30m', '60m', '90m', '1h']:
+            data = stock.history(period='7d', interval=period)
+        elif period in ['1d', '5d', '1wk']:
+            data = stock.history(period='1y', interval=period)
+        elif period in ['1mo', '3mo']:
+            data = stock.history(period='3y', interval='1mo')
+        else:
+            st.error(f"Error: Invalid period '{period}'. Please select a valid period.")
+            return None
+        return data['Close'].iloc[-1]  # Use iloc instead of square bracket indexing
+    except IndexError:
+        st.error(f"Error: No data found for ticker '{ticker}'. Please ensure the ticker is entered exactly as it appears on Yahoo Finance.")
+        return None
     try:
         stock = yf.Ticker(ticker)
         if period in ['1m', '2m', '5m', '15m']:
