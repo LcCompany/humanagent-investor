@@ -162,7 +162,7 @@ def main():
     ticker = st.text_input("Enter the stock ticker to analyze, exactly as it appears on [Yahoo Finance](https://finance.yahoo.com/):")
 
     period_options = [
-        '1m as 1 minute',
+        '1m' as '1 minute',
         '2m as 2 minutes',
         '5m as 5 minutes',
         '15m as 15 minutes',
