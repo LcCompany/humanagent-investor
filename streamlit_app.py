@@ -79,8 +79,14 @@ def get_current_price(ticker, period):
             data = stock.history(period='1d', interval='5m')
         elif period == '15m':
             data = stock.history(period='1d', interval='15m')
-        elif period in ['30m', '60m', '90m', '1h']:
-            data = stock.history(period='7d', interval=period)
+        elif period == '30m':
+            data = stock.history(period='7d', interval='30m')
+        elif period == '60m':
+            data = stock.history(period='7d', interval='60m')
+        elif period == '90m':
+            data = stock.history(period='7d', interval='90m')
+        elif period == '1h':
+            data = stock.history(period='7d', interval='1h')
         elif period in ['1d', '5d', '1wk']:
             data = stock.history(period='1y', interval=period)
         elif period in ['1mo', '3mo']:
@@ -161,15 +167,31 @@ def main():
 
     ticker = st.text_input("Enter the stock ticker to analyze, exactly as it appears on [Yahoo Finance](https://finance.yahoo.com/):")
 
-    period_options = ['1m' as '1 minute', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo']
-    period = st.selectbox("Select the timeframe for the analysis:", period_options, index=8)  # Set default to '1d'
+    period_options = {
+        '1m': '1 minute',
+        '2m': '2 minutes',
+        '5m': '5 minutes',
+        '15m': '15 minutes',
+        '30m': '30 minutes',
+        '60m': '1 hour',
+        '90m': '1.5 hours',
+        '1h': '1 hour',
+        '1d': '1 day (default)',
+        '5d': '5 days',
+        '1wk': '1 week',
+        '1mo': '1 month',
+        '3mo': '3 months'
+    }
+
+    period = st.selectbox("Select the timeframe for the analysis:", list(period_options.values()), index=8)
 
     if st.button("Analyze"):
         if ticker:
             # Get stock data
-            hist_data = get_stock_data(ticker, period)
+            selected_period = list(period_options.keys())[list(period_options.values()).index(period)]
+            hist_data = get_stock_data(ticker, selected_period)
             if hist_data is not None:
-                current_price = get_current_price(ticker, period)
+                current_price = get_current_price(ticker, selected_period)
                 if current_price is not None:
                     # Generate analysis
                     analysis = generate_analysis(ticker, hist_data, current_price, api_key)
