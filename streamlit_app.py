@@ -90,23 +90,6 @@ def get_current_price(ticker, period):
     except IndexError:
         st.error(f"Error: No data found for ticker '{ticker}'. Please ensure the ticker is entered exactly as it appears on Yahoo Finance.")
         return None
-    try:
-        stock = yf.Ticker(ticker)
-        if period in ['1m', '2m', '5m', '15m']:
-            data = stock.history(period='1d', interval=period)
-        elif period in ['30m', '60m', '90m', '1h']:
-            data = stock.history(period='7d', interval=period)
-        elif period in ['1d', '5d', '1wk']:
-            data = stock.history(period='1y', interval=period)
-        elif period in ['1mo', '3mo']:
-            data = stock.history(period='3y', interval=period)
-        else:
-            st.error(f"Error: Invalid period '{period}'. Please select a valid period.")
-            return None
-        return data['Close'].iloc[-1]  # Use iloc instead of square bracket indexing
-    except IndexError:
-        st.error(f"Error: No data found for ticker '{ticker}'. Please ensure the ticker is entered exactly as it appears on Yahoo Finance.")
-        return None
 
 def generate_analysis(ticker, hist_data, current_price, api_key):
     system_prompt = f"""<role_definition>
@@ -169,6 +152,7 @@ Given the historical price data and the current price for {ticker}, apply the ab
     response_text = response.json()['content'][0]['text']
     return response_text
 
+
 def main():
     st.title("Stock Analysis App")
     api_key = st.secrets["ANTHROPIC_API_KEY"]
@@ -176,7 +160,22 @@ def main():
     ticker = st.text_input("Enter the stock ticker to analyze, exactly as it appears on [Yahoo Finance](https://finance.yahoo.com/):")
 
     period_options = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo']
-    period = st.selectbox("Select the timeframe for the analysis:", period_options)
+    st.write("Available timeframes:")
+    st.write("- '1m': 1 minute")
+    st.write("- '2m': 2 minutes")
+    st.write("- '5m': 5 minutes")
+    st.write("- '15m': 15 minutes")
+    st.write("- '30m': 30 minutes")
+    st.write("- '60m': 60 minutes (1 hour)")
+    st.write("- '90m': 90 minutes (1.5 hours)")
+    st.write("- '1h': 1 hour")
+    st.write("- '1d': 1 day (default)")
+    st.write("- '5d': 5 days")
+    st.write("- '1wk': 1 week")
+    st.write("- '1mo': 1 month")
+    st.write("- '3mo': 3 months")
+
+    period = st.selectbox("Select the timeframe for the analysis:", period_options, index=8)  # Set default to '1d'
 
     if st.button("Analyze"):
         if ticker:
