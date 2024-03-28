@@ -176,7 +176,7 @@ def main():
         '1mo': '1 month'
     }
 
-    period = st.selectbox("Select the timeframe for the analysis:", list(period_options.values()), index=8)
+    period = st.selectbox("Select the timeframe for the analysis:", list(period_options.values()), index=5)
 
     if st.button("Analyze"):
         if ticker:
