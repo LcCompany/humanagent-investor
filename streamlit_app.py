@@ -166,7 +166,6 @@ def main():
 
     period_options = {
         '1m': '1 minute',
-        '2m': '2 minutes',
         '5m': '5 minutes',
         '15m': '15 minutes',
         '30m': '30 minutes',
