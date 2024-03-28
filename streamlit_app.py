@@ -72,25 +72,25 @@ def get_current_price(ticker, period):
     try:
         stock = yf.Ticker(ticker)
         if period == '1m':
-            data = stock.history(period='1d', interval='1m')
+            data = stock.history(period='7d', interval='1m')
         elif period == '2m':
-            data = stock.history(period='1d', interval='2m')
+            data = stock.history(period='7d', interval='2m')
         elif period == '5m':
-            data = stock.history(period='1d', interval='5m')
+            data = stock.history(period='7d', interval='5m')
         elif period == '15m':
-            data = stock.history(period='1d', interval='15m')
+            data = stock.history(period='7d', interval='15m')
         elif period == '30m':
-            data = stock.history(period='7d', interval='30m')
+            data = stock.history(period='60d', interval='30m')
         elif period == '60m':
-            data = stock.history(period='7d', interval='60m')
+            data = stock.history(period='60d', interval='60m')
         elif period == '90m':
-            data = stock.history(period='7d', interval='90m')
+            data = stock.history(period='60d', interval='90m')
         elif period == '1h':
-            data = stock.history(period='7d', interval='1h')
+            data = stock.history(period='60d', interval='1h')
         elif period in ['1d', '5d', '1wk']:
-            data = stock.history(period='1y', interval=period)
+            data = stock.history(period='3y', interval=period)
         elif period in ['1mo', '3mo']:
-            data = stock.history(period='3y', interval='1mo')
+            data = stock.history(period='5y', interval='1mo')
         else:
             st.error(f"Error: Invalid period '{period}'. Please select a valid period.")
             return None
@@ -176,7 +176,7 @@ def main():
         '60m': '1 hour',
         '90m': '1.5 hours',
         '1h': '1 hour',
-        '1d': '1 day (default)',
+        '1d': '1 day',
         '5d': '5 days',
         '1wk': '1 week',
         '1mo': '1 month',
