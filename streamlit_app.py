@@ -161,22 +161,21 @@ def main():
 
     ticker = st.text_input("Enter the stock ticker to analyze, exactly as it appears on [Yahoo Finance](https://finance.yahoo.com/):")
 
-    st.write("Available timeframes:")
-    st.write("- '1m': 1 minute")
-    st.write("- '2m': 2 minutes")
-    st.write("- '5m': 5 minutes")
-    st.write("- '15m': 15 minutes")
-    st.write("- '30m': 30 minutes")
-    st.write("- '60m': 60 minutes (1 hour)")
-    st.write("- '90m': 90 minutes (1.5 hours)")
-    st.write("- '1h': 1 hour")
-    st.write("- '1d': 1 day (default)")
-    st.write("- '5d': 5 days")
-    st.write("- '1wk': 1 week")
-    st.write("- '1mo': 1 month")
-    st.write("- '3mo': 3 months")
-
-    period_options = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo']
+    period_options = [
+        '1m as 1 minute',
+        '2m as 2 minutes',
+        '5m as 5 minutes',
+        '15m as 15 minutes',
+        '30m as 30 minutes',
+        '60m as 60 minutes (1 hour)',
+        '90m as 90 minutes (1.5 hours)',
+        '1h as 1 hour',
+        '1d as 1 day (default)',
+        '5d as 5 days',
+        '1wk as 1 week',
+        '1mo as 1 month',
+        '3mo as 3 months'
+    ]
     period = st.selectbox("Select the timeframe for the analysis:", period_options, index=8)  # Set default to '1d'
 
     if st.button("Analyze"):
