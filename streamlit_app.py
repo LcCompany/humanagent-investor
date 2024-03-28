@@ -3,6 +3,8 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
+import ast
+import json
 
 def get_stock_data(ticker, period):
     if period == '1m':
@@ -159,7 +161,6 @@ def main():
 
     ticker = st.text_input("Enter the stock ticker to analyze, exactly as it appears on [Yahoo Finance](https://finance.yahoo.com/):")
 
-    period_options = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo']
     st.write("Available timeframes:")
     st.write("- '1m': 1 minute")
     st.write("- '2m': 2 minutes")
@@ -175,6 +176,7 @@ def main():
     st.write("- '1mo': 1 month")
     st.write("- '3mo': 3 months")
 
+    period_options = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo']
     period = st.selectbox("Select the timeframe for the analysis:", period_options, index=8)  # Set default to '1d'
 
     if st.button("Analyze"):
