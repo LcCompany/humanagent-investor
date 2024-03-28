@@ -3,8 +3,6 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
-import ast
-import json
 
 def get_stock_data(ticker, period):
     if period == '1m':
@@ -72,25 +70,25 @@ def get_current_price(ticker, period):
     try:
         stock = yf.Ticker(ticker)
         if period == '1m':
-            data = stock.history(period='7d', interval='1m')
+            data = stock.history(period='1d', interval='1m')
         elif period == '2m':
-            data = stock.history(period='7d', interval='2m')
+            data = stock.history(period='1d', interval='2m')
         elif period == '5m':
-            data = stock.history(period='7d', interval='5m')
+            data = stock.history(period='1d', interval='5m')
         elif period == '15m':
-            data = stock.history(period='7d', interval='15m')
+            data = stock.history(period='1d', interval='15m')
         elif period == '30m':
-            data = stock.history(period='60d', interval='30m')
+            data = stock.history(period='7d', interval='30m')
         elif period == '60m':
-            data = stock.history(period='60d', interval='60m')
+            data = stock.history(period='7d', interval='60m')
         elif period == '90m':
-            data = stock.history(period='60d', interval='90m')
+            data = stock.history(period='7d', interval='90m')
         elif period == '1h':
-            data = stock.history(period='60d', interval='1h')
+            data = stock.history(period='7d', interval='1h')
         elif period in ['1d', '5d', '1wk']:
-            data = stock.history(period='3y', interval=period)
+            data = stock.history(period='1y', interval=period)
         elif period in ['1mo', '3mo']:
-            data = stock.history(period='5y', interval='1mo')
+            data = stock.history(period='3y', interval='1mo')
         else:
             st.error(f"Error: Invalid period '{period}'. Please select a valid period.")
             return None
@@ -159,7 +157,6 @@ Given the historical price data and the current price for {ticker}, apply the ab
     response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data)
     response_text = response.json()['content'][0]['text']
     return response_text
-
 
 def main():
     st.title("Stock Analysis App")
