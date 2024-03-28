@@ -3,21 +3,48 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
-import ast
-import json
 
-def get_stock_data(ticker, years):
-    end_date = datetime.now().date()
-    start_date = end_date - timedelta(days=years*365)
+
+def get_stock_data(ticker, period):
+    if period in ['1m', '2m', '5m', '15m']:
+        interval = period
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=1)
+    elif period in ['30m', '60m', '90m', '1h']:
+        interval = '1h'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=7)
+    elif period in ['1d', '5d', '1wk']:
+        interval = '1d'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=365)
+    elif period in ['1mo', '3mo']:
+        interval = '1mo'
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=365 * 3)
+    else:
+        st.error(f"Error: Invalid period '{period}'. Please select a valid period.")
+        return None
+
     stock = yf.Ticker(ticker)
     # Retrieve historical price data
-    hist_data = stock.history(start=start_date, end=end_date)
+    hist_data = stock.history(start=start_date, end=end_date, interval=interval)
     return hist_data
 
-def get_current_price(ticker):
+def get_current_price(ticker, period):
     try:
         stock = yf.Ticker(ticker)
-        data = stock.history(period='1d', interval='1m')
+        if period in ['1m', '2m', '5m', '15m']:
+            data = stock.history(period='1d', interval=period)
+        elif period in ['30m', '60m', '90m', '1h']:
+            data = stock.history(period='7d', interval=period)
+        elif period in ['1d', '5d', '1wk']:
+            data = stock.history(period='1y', interval=period)
+        elif period in ['1mo', '3mo']:
+            data = stock.history(period='3y', interval=period)
+        else:
+            st.error(f"Error: Invalid period '{period}'. Please select a valid period.")
+            return None
         return data['Close'].iloc[-1]  # Use iloc instead of square bracket indexing
     except IndexError:
         st.error(f"Error: No data found for ticker '{ticker}'. Please ensure the ticker is entered exactly as it appears on Yahoo Finance.")
@@ -86,22 +113,24 @@ Given the historical price data and the current price for {ticker}, apply the ab
 
 def main():
     st.title("Stock Analysis App")
-    # api_key = st.text_input("Enter your Anthropic API key:", type="password")  # Remove this line
+    api_key = st.secrets["ANTHROPIC_API_KEY"]
+
     ticker = st.text_input("Enter the stock ticker to analyze, exactly as it appears on [Yahoo Finance](https://finance.yahoo.com/):")
-    years = 1
+
+    period_options = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo']
+    period = st.selectbox("Select the timeframe for the analysis:", period_options)
+
     if st.button("Analyze"):
         if ticker:
             # Get stock data
-            hist_data = get_stock_data(ticker, years)
-            current_price = get_current_price(ticker)
-            if current_price is not None:
-                # Generate analysis
-                api_key = st.secrets["ANTHROPIC_API_KEY"]  # Retrieve the API key from Streamlit secrets
-                analysis = generate_analysis(ticker, hist_data, current_price, api_key)
-                st.subheader(f"Analysis for {ticker}:")
-                st.write(analysis)
-            else:
-                st.error("Unable to generate analysis due to missing data.")
+            hist_data = get_stock_data(ticker, period)
+            if hist_data is not None:
+                current_price = get_current_price(ticker, period)
+                if current_price is not None:
+                    # Generate analysis
+                    analysis = generate_analysis(ticker, hist_data, current_price, api_key)
+                    st.subheader(f"Analysis for {ticker} ({period}):")
+                    st.write(analysis)
         else:
             if not ticker:
                 st.warning("Please enter a stock ticker.")
