@@ -148,7 +148,7 @@ Given the historical price data and the current price for {ticker}, apply the ab
         "content-type": "application/json"
     }
     data = {
-        "model": 'claude-3-haiku-20240307',  #claude-3-opus-20240229
+        "model": 'claude-3-5-sonnet-20240620',  #claude-3-opus-20240229
         "max_tokens": 4096,
         "temperature": 0.1,
         "system": system_prompt,
