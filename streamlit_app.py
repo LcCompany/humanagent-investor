@@ -2,7 +2,7 @@ import streamlit as st
 import yfinance as yf
 from datetime import datetime, timedelta
 import requests
-import json
+from bs4 import BeautifulSoup
 
 def get_stock_data(ticker, period):
     if period == '1m':
@@ -62,6 +62,7 @@ def get_stock_data(ticker, period):
         return None
 
     stock = yf.Ticker(ticker)
+    # Retrieve historical price data
     hist_data = stock.history(start=start_date, end=end_date, interval=interval)
     return hist_data
 
@@ -91,7 +92,7 @@ def get_current_price(ticker, period):
         else:
             st.error(f"Error: Invalid period '{period}'. Please select a valid period.")
             return None
-        return data['Close'].iloc[-1]
+        return data['Close'].iloc[-1]  # Use iloc instead of square bracket indexing
     except IndexError:
         st.error(f"Error: No data found for ticker '{ticker}'. Please ensure the ticker is entered exactly as it appears on Yahoo Finance.")
         return None
@@ -139,57 +140,23 @@ Your role is to meticulously examine financial data, apply technical analysis pr
 Given the historical price data and the current price for {ticker}, apply the above role definition, skill alignment, knowledge application, parameter customization, and core responsibilities to analyze the data. Start the analysis with the most recent date in the dataset and consider the current price. Use the defined technical analysis indicators to determine buy or sell signals and articulate your analysis and recommendation clearly, including a confidence level and potential risk factors.
 </task>"""
     messages = [
-        {"role": "user", "content": f"Historical price data for {ticker}:\n{hist_data.to_string()}\n\nCurrent price: {current_price}"},
+    {"role": "user", "content": f"Historical price data for {ticker}:\n{hist_data.to_string()}\n\nCurrent price: {current_price}"},
     ]
     headers = {
+        "x-api-key": api_key,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json"
     }
     data = {
-        "model": 'claude-3-5-sonnet-20240620',
+        "model": 'claude-3-5-sonnet-20240620',  #claude-3-opus-20240229
         "max_tokens": 4096,
         "temperature": 0.1,
         "system": system_prompt,
         "messages": messages,
     }
-
-    st.write("Sending request to Anthropic API...")
-    
-    try:
-        safe_data = {**data, "system": "REDACTED"}
-        st.write("Request data:", json.dumps(safe_data, indent=2))
-    except Exception as e:
-        st.error(f"Error while trying to write request data: {str(e)}")
-        st.write("Request data (raw):", {k: v if k != "system" else "REDACTED" for k, v in data.items()})
-
-    try:
-        response = requests.post("https://api.anthropic.com/v1/messages", headers={**headers, "x-api-key": api_key}, json=data)
-
-        st.write(f"API Response Status Code: {response.status_code}")
-        st.write("API Response Headers:", {k: v for k, v in response.headers.items() if k.lower() not in ["set-cookie", "authorization"]})
-
-        if response.status_code != 200:
-            st.error(f"API request failed with status code: {response.status_code}")
-            return "Failed to generate analysis due to API error."
-
-        try:
-            response_json = response.json()
-            safe_response = {k: v if k != "system" else "REDACTED" for k, v in response_json.items()}
-            st.write("Full API Response:", json.dumps(safe_response, indent=2))
-
-            if 'content' in response_json and len(response_json['content']) > 0:
-                response_text = response_json['content'][0]['text']
-            else:
-                st.warning("Unexpected API response structure")
-                response_text = "Unable to extract analysis from API response."
-            
-            return response_text
-        except json.JSONDecodeError:
-            st.error("Failed to decode API response as JSON")
-            return "Failed to generate analysis due to invalid API response."
-    except Exception as e:
-        st.error(f"An error occurred while making the API request: {type(e).__name__}")
-        return "Failed to generate analysis due to an unexpected error."
+    response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data)
+    response_text = response.json()['content'][0]['text']
+    return response_text
 
 def main():
     st.title("Stock Analysis App")
@@ -213,19 +180,19 @@ def main():
 
     if st.button("Analyze"):
         if ticker:
+            # Get stock data
             selected_period = list(period_options.keys())[list(period_options.values()).index(period)]
             hist_data = get_stock_data(ticker, selected_period)
             if hist_data is not None:
                 current_price = get_current_price(ticker, selected_period)
                 if current_price is not None:
-                    st.write("Generating analysis...")
+                    # Generate analysis
                     analysis = generate_analysis(ticker, hist_data, current_price, api_key)
                     st.subheader(f"Analysis for {ticker} ({period}):")
                     st.write(analysis)
-            else:
-                st.error(f"Failed to fetch historical data for {ticker}")
         else:
-            st.warning("Please enter a stock ticker.")
+            if not ticker:
+                st.warning("Please enter a stock ticker.")
 
 if __name__ == "__main__":
     main()
