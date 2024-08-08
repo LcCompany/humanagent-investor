@@ -193,7 +193,6 @@ def main():
     api_key = st.secrets["ANTHROPIC_API_KEY"]
 
     # Add logging for API key
-    st.write(f"API Key (first 5 characters): {api_key[:5]}...")
 
     ticker = st.text_input("Enter the stock ticker to analyze, exactly as it appears on [Yahoo Finance](https://finance.yahoo.com/):")
 
