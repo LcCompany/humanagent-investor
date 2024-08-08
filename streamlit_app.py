@@ -2,7 +2,7 @@ import streamlit as st
 import yfinance as yf
 from datetime import datetime, timedelta
 import requests
-from bs4 import BeautifulSoup
+import json
 
 def get_stock_data(ticker, period):
     if period == '1m':
@@ -62,7 +62,6 @@ def get_stock_data(ticker, period):
         return None
 
     stock = yf.Ticker(ticker)
-    # Retrieve historical price data
     hist_data = stock.history(start=start_date, end=end_date, interval=interval)
     return hist_data
 
@@ -92,7 +91,7 @@ def get_current_price(ticker, period):
         else:
             st.error(f"Error: Invalid period '{period}'. Please select a valid period.")
             return None
-        return data['Close'].iloc[-1]  # Use iloc instead of square bracket indexing
+        return data['Close'].iloc[-1]
     except IndexError:
         st.error(f"Error: No data found for ticker '{ticker}'. Please ensure the ticker is entered exactly as it appears on Yahoo Finance.")
         return None
@@ -143,7 +142,6 @@ Given the historical price data and the current price for {ticker}, apply the ab
         {"role": "user", "content": f"Historical price data for {ticker}:\n{hist_data.to_string()}\n\nCurrent price: {current_price}"},
     ]
     headers = {
-        "x-api-key": "REDACTED",  # Redact API key in logs
         "anthropic-version": "2023-06-01",
         "content-type": "application/json"
     }
@@ -155,12 +153,9 @@ Given the historical price data and the current price for {ticker}, apply the ab
         "messages": messages,
     }
 
-    # Add logging before API call
     st.write("Sending request to Anthropic API...")
-    st.write("Request headers:", {k: v if k != "x-api-key" else "REDACTED" for k, v in headers.items()})
     
     try:
-        # Redact the system prompt to avoid potential sensitive information
         safe_data = {**data, "system": "REDACTED"}
         st.write("Request data:", json.dumps(safe_data, indent=2))
     except Exception as e:
@@ -170,18 +165,15 @@ Given the historical price data and the current price for {ticker}, apply the ab
     try:
         response = requests.post("https://api.anthropic.com/v1/messages", headers={**headers, "x-api-key": api_key}, json=data)
 
-        # Add logging after API call
         st.write(f"API Response Status Code: {response.status_code}")
         st.write("API Response Headers:", {k: v for k, v in response.headers.items() if k.lower() not in ["set-cookie", "authorization"]})
 
         if response.status_code != 200:
             st.error(f"API request failed with status code: {response.status_code}")
-            st.error("Response content: [REDACTED DUE TO POTENTIAL SENSITIVE INFORMATION]")
             return "Failed to generate analysis due to API error."
 
         try:
             response_json = response.json()
-            # Redact potential sensitive information in the response
             safe_response = {k: v if k != "system" else "REDACTED" for k, v in response_json.items()}
             st.write("Full API Response:", json.dumps(safe_response, indent=2))
 
@@ -189,13 +181,11 @@ Given the historical price data and the current price for {ticker}, apply the ab
                 response_text = response_json['content'][0]['text']
             else:
                 st.warning("Unexpected API response structure")
-                st.write("Expected 'content' key not found or empty in response")
                 response_text = "Unable to extract analysis from API response."
             
             return response_text
         except json.JSONDecodeError:
             st.error("Failed to decode API response as JSON")
-            st.error("Raw response: [REDACTED DUE TO POTENTIAL SENSITIVE INFORMATION]")
             return "Failed to generate analysis due to invalid API response."
     except Exception as e:
         st.error(f"An error occurred while making the API request: {type(e).__name__}")
@@ -205,10 +195,37 @@ def main():
     st.title("Stock Analysis App")
     api_key = st.secrets["ANTHROPIC_API_KEY"]
 
-    # Remove any logging of API key
-    # st.write(f"API Key (first 5 characters): {api_key[:5]}...")  # Remove this line
+    ticker = st.text_input("Enter the stock ticker to analyze, exactly as it appears on [Yahoo Finance](https://finance.yahoo.com/):")
 
-    # ... (rest of the main function remains the same)
+    period_options = {
+        '1m': '1 minute',
+        '5m': '5 minutes',
+        '15m': '15 minutes',
+        '30m': '30 minutes',
+        '1h': '1 hour',
+        '1d': '1 day',
+        '5d': '5 days',
+        '1wk': '1 week',
+        '1mo': '1 month'
+    }
+
+    period = st.selectbox("Select the timeframe for the analysis:", list(period_options.values()), index=5)
+
+    if st.button("Analyze"):
+        if ticker:
+            selected_period = list(period_options.keys())[list(period_options.values()).index(period)]
+            hist_data = get_stock_data(ticker, selected_period)
+            if hist_data is not None:
+                current_price = get_current_price(ticker, selected_period)
+                if current_price is not None:
+                    st.write("Generating analysis...")
+                    analysis = generate_analysis(ticker, hist_data, current_price, api_key)
+                    st.subheader(f"Analysis for {ticker} ({period}):")
+                    st.write(analysis)
+            else:
+                st.error(f"Failed to fetch historical data for {ticker}")
+        else:
+            st.warning("Please enter a stock ticker.")
 
 if __name__ == "__main__":
     main()
