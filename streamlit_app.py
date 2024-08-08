@@ -140,7 +140,7 @@ Your role is to meticulously examine financial data, apply technical analysis pr
 Given the historical price data and the current price for {ticker}, apply the above role definition, skill alignment, knowledge application, parameter customization, and core responsibilities to analyze the data. Start the analysis with the most recent date in the dataset and consider the current price. Use the defined technical analysis indicators to determine buy or sell signals and articulate your analysis and recommendation clearly, including a confidence level and potential risk factors.
 </task>"""
     messages = [
-    {"role": "user", "content": f"Historical price data for {ticker}:\n{hist_data.to_string()}\n\nCurrent price: {current_price}"},
+        {"role": "user", "content": f"Historical price data for {ticker}:\n{hist_data.to_string()}\n\nCurrent price: {current_price}"},
     ]
     headers = {
         "x-api-key": api_key,
@@ -148,19 +148,52 @@ Given the historical price data and the current price for {ticker}, apply the ab
         "content-type": "application/json"
     }
     data = {
-        "model": 'claude-3-5-sonnet-20240620',  #claude-3-opus-20240229
+        "model": 'claude-3-5-sonnet-20240620',
         "max_tokens": 4096,
         "temperature": 0.1,
         "system": system_prompt,
         "messages": messages,
     }
+
+    # Add logging before API call
+    st.write("Sending request to Anthropic API...")
+    st.write("Request headers:", headers)
+    st.write("Request data:", json.dumps(data, indent=2))
+
     response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data)
-    response_text = response.json()['content'][0]['text']
-    return response_text
+
+    # Add logging after API call
+    st.write(f"API Response Status Code: {response.status_code}")
+    st.write("API Response Headers:", dict(response.headers))
+
+    if response.status_code != 200:
+        st.error(f"API request failed with status code: {response.status_code}")
+        st.error(f"Response content: {response.text}")
+        return "Failed to generate analysis due to API error."
+
+    try:
+        response_json = response.json()
+        st.write("Full API Response:", json.dumps(response_json, indent=2))
+
+        if 'content' in response_json and len(response_json['content']) > 0:
+            response_text = response_json['content'][0]['text']
+        else:
+            st.warning("Unexpected API response structure")
+            st.write("Expected 'content' key not found or empty in response")
+            response_text = "Unable to extract analysis from API response."
+        
+        return response_text
+    except json.JSONDecodeError:
+        st.error("Failed to decode API response as JSON")
+        st.error(f"Raw response: {response.text}")
+        return "Failed to generate analysis due to invalid API response."
 
 def main():
     st.title("Stock Analysis App")
     api_key = st.secrets["ANTHROPIC_API_KEY"]
+
+    # Add logging for API key
+    st.write(f"API Key (first 5 characters): {api_key[:5]}...")
 
     ticker = st.text_input("Enter the stock ticker to analyze, exactly as it appears on [Yahoo Finance](https://finance.yahoo.com/):")
 
@@ -187,12 +220,14 @@ def main():
                 current_price = get_current_price(ticker, selected_period)
                 if current_price is not None:
                     # Generate analysis
+                    st.write("Generating analysis...")
                     analysis = generate_analysis(ticker, hist_data, current_price, api_key)
                     st.subheader(f"Analysis for {ticker} ({period}):")
                     st.write(analysis)
+            else:
+                st.error(f"Failed to fetch historical data for {ticker}")
         else:
-            if not ticker:
-                st.warning("Please enter a stock ticker.")
+            st.warning("Please enter a stock ticker.")
 
 if __name__ == "__main__":
     main()
